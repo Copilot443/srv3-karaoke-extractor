@@ -1,0 +1,172 @@
+#!/bin/bash
+
+# ----------------------------------------
+# YTSubConverter + yt-dlp SABR downloader
+#
+# Modes:
+#   (none)      -> video + subs from same URL
+#   -burn       -> burn subtitles
+#   -burn-e     -> burn + edit
+#   -soft       -> soft subtitles (MKV)
+#   -soft-e     -> soft + edit
+#   -subs-o     -> subtitles only
+#   -subs       -> video from URL1 + subtitles from URL2
+# ----------------------------------------
+
+# -------- HELP --------
+for arg in "$@"; do
+    if [[ "$arg" == "-help" ]]; then
+        cat <<'EOF'
+Usage:
+  srv3 <VIDEO_URL> [MODE]
+  srv3 <VIDEO_URL> -subs <SUBS_URL> [PROCESS_MODE]
+
+PROCESS_MODE (optional after -subs):
+  -soft       soft subtitles (MKV)
+  -soft-e     soft + edit
+  -burn       burn subtitles
+  -burn-e     burn + edit
+
+Modes:
+  (none)      video + subs (same URL)
+  -subs-o     subs only
+  -subs       video from URL1 + subs from URL2
+  -burn       burn subtitles
+  -burn-e     burn + edit
+  -soft       soft subtitles (MKV)
+  -soft-e     soft + edit
+EOF
+        exit 0
+    fi
+done
+
+# -------- ARGUMENTS --------
+VIDEO_URL="$1"
+MODE="normal"
+SUBS_URL=""
+PROCESS_MODE=""
+
+[ -z "$VIDEO_URL" ] && { echo "No URL provided"; exit 1; }
+
+case "$2" in
+    -burn)    MODE="burn" ;;
+    -burn-e)  MODE="burn-edit" ;;
+    -soft)    MODE="soft" ;;
+    -soft-e)  MODE="soft-edit" ;;
+    -subs-o)  MODE="subs-only" ;;
+    -subs)
+        MODE="dual-subs"
+        SUBS_URL="$3"
+        PROCESS_MODE="$4"
+        ;;
+esac
+
+if [[ "$MODE" == "dual-subs" && -z "$SUBS_URL" ]]; then
+    echo "Error: -subs requires a subtitle URL"
+    exit 1
+fi
+
+# Apply processing mode after -subs
+case "$PROCESS_MODE" in
+    -burn)    MODE="dual-burn" ;;
+    -burn-e)  MODE="dual-burn-edit" ;;
+    -soft)    MODE="dual-soft" ;;
+    -soft-e)  MODE="dual-soft-edit" ;;
+    "" ) : ;;
+    * )
+        echo "Invalid processing mode: $PROCESS_MODE"
+        exit 1
+        ;;
+esac
+
+# -------- DEPENDENCIES --------
+command -v yt-dlp >/dev/null || { echo "yt-dlp not found"; exit 1; }
+command -v ytsubconverter >/dev/null || { echo "ytsubconverter not found"; exit 1; }
+
+if [[ "$MODE" == *burn* || "$MODE" == *soft* ]]; then
+    command -v ffmpeg >/dev/null || { echo "ffmpeg required"; exit 1; }
+fi
+
+EDITOR_CMD="${EDITOR:-micro}"
+VIDEOS_DIR="$HOME/Videos"
+TEMP_DIR="$VIDEOS_DIR/xx1.temp.1xx"
+rm -rf "$TEMP_DIR"
+
+# -------- METADATA --------
+VIDEO_TITLE=$(yt-dlp --get-title "$VIDEO_URL")
+SAFE_TITLE=$(echo "$VIDEO_TITLE" | sed 's#[/:]#_#g')
+
+# -------- FORMAT SELECTION (SABR) --------
+if [[ "$MODE" != subs-* ]]; then
+    echo "Fetching available formats..."
+    yt-dlp -F "$VIDEO_URL"
+
+    echo "Pick the video format code you want to download (video only):"
+    read -p "Video format code: " VIDEO_FORMAT
+
+    FORMAT_CODE="${VIDEO_FORMAT}+bestaudio"
+    QUALITY_SUFFIX="V${VIDEO_FORMAT}"
+fi
+
+# -------- DESTINATION --------
+if [[ "$MODE" == normal || "$MODE" == dual-* ]]; then
+    DEST_DIR="$VIDEOS_DIR/${SAFE_TITLE}_${QUALITY_SUFFIX}"
+elif [[ "$MODE" == subs-* ]]; then
+    DEST_DIR="$VIDEOS_DIR"
+else
+    DEST_DIR="$TEMP_DIR"
+fi
+mkdir -p "$DEST_DIR"
+
+# -------- VIDEO DOWNLOAD --------
+if [[ "$MODE" != subs-* ]]; then
+    yt-dlp "$VIDEO_URL" -f "$FORMAT_CODE" -o "$DEST_DIR/%(title)s.%(ext)s"
+fi
+
+# -------- SUBTITLE SOURCE --------
+if [[ "$MODE" == dual-* ]]; then
+    SRC="$SUBS_URL"
+else
+    SRC="$VIDEO_URL"
+fi
+
+yt-dlp "$SRC" \
+    --skip-download \
+    --write-subs \
+    --sub-format srv3 \
+    -o "$DEST_DIR/%(title)s.%(ext)s"
+
+# -------- FIND VIDEO FILE --------
+if [[ "$MODE" != subs-* ]]; then
+    VIDEO_FILE=$(ls "$DEST_DIR"/*.{mp4,mkv,webm,avi,flv,mov} 2>/dev/null | head -n 1)
+fi
+
+# -------- CONVERT SUBS TO ASS --------
+for f in "$DEST_DIR"/*.srv3; do
+    [ -f "$f" ] || continue
+    ASS="${f%.srv3}.ass"
+    ytsubconverter "$f" "$ASS" || exit 1
+    rm "$f"
+done
+
+# -------- EDIT SUBS --------
+if [[ "$MODE" == *edit ]]; then
+    "$EDITOR_CMD" "$ASS"
+fi
+
+# -------- PROCESS VIDEO + SUBS --------
+if [[ "$MODE" == *burn* || "$MODE" == *soft* ]]; then
+    RES=$(ffprobe -v error -select_streams v:0 -show_entries stream=height -of csv=p=0 "$VIDEO_FILE")
+    OUT="$VIDEOS_DIR/${SAFE_TITLE}_${RES}p.$([[ "$MODE" == *soft* ]] && echo mkv || echo mp4)"
+
+    if [[ "$MODE" == *burn* ]]; then
+        ffmpeg -y -i "$VIDEO_FILE" -vf "ass=$ASS" -c:a copy "$OUT"
+    else
+        ffmpeg -y -i "$VIDEO_FILE" -i "$ASS" -c copy \
+            -metadata:s:s:0 language=eng \
+            -disposition:s:0 default "$OUT"
+    fi
+    rm -rf "$DEST_DIR"
+fi
+
+echo "All done."
