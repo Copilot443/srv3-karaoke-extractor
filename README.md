@@ -160,8 +160,7 @@ Downloads:
 - .srv3 karaoke subtitles
 - Merges streams into MP4
 - Converts subtitles:
--     .srv3 → .ass
-
+  `.srv3 → .ass`
 Preserves syllable timing and karaoke effects
 
 Cleans up intermediate files
@@ -271,3 +270,6 @@ rm -rf ~/.srv3_config
 - Not useful for plain .srt subtitles
 - Desktop environment independent
 - Designed to be stable and distro-friendly
+
+## LICENSE
+MIT License
