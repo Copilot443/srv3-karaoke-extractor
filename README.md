@@ -73,7 +73,7 @@ All files must remain in the same directory during installation for **your distr
 
 1️⃣ Clone the repository:
 ```
-git clone https://github.com/TheNPC-sketch/srv3-karaoke-extractor
+git clone https://github.com/Copilot443/srv3-karaoke-extractor
 cd srv3-karaoke-extractor
 ```
 
