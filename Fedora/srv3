@@ -98,16 +98,16 @@ rm -rf "$TEMP_DIR"
 VIDEO_TITLE=$(yt-dlp --get-title "$VIDEO_URL")
 SAFE_TITLE=$(echo "$VIDEO_TITLE" | sed 's#[/:]#_#g')
 
-# -------- FORMAT SELECTION (SABR) --------
+# -------- FORMAT SELECTION --------
 if [[ "$MODE" != subs-* ]]; then
     echo "Fetching available formats..."
     yt-dlp -F "$VIDEO_URL"
 
-    echo "Pick the video format code you want to download (video only):"
-    read -p "Video format code: " VIDEO_FORMAT
+    echo "Pick the format code you want to download:"
+    read -p "Format code: " VIDEO_FORMAT
 
-    FORMAT_CODE="${VIDEO_FORMAT}+bestaudio"
-    QUALITY_SUFFIX="V${VIDEO_FORMAT}"
+    FORMAT_CODE="$VIDEO_FORMAT"
+    QUALITY_SUFFIX="F${VIDEO_FORMAT}"
 fi
 
 # -------- DESTINATION --------
