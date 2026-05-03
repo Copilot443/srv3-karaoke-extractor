@@ -88,7 +88,12 @@ Used when editing subtitles with `-se` / `--soft-edit` or `-be` / `--burn-edit`.
 
 ```
 .
-├── srv3.py       ← main script (Windows / Linux / macOS)
+├── .github/
+│   └── workflows/
+│       └── build.yml     ← automated cross-platform build pipeline
+├── srv3.py               ← main script (Windows / Linux / macOS)
+├── banner.svg
+├── icon.svg
 ├── LICENSE
 └── README.md
 ```
@@ -97,19 +102,43 @@ Used when editing subtitles with `-se` / `--soft-edit` or `-be` / `--burn-edit`.
 
 ## 🚀 Installation
 
-1. Install all prerequisites listed above
-2. Clone or download this repo:
+### Option 1 — Precompiled Binaries (recommended)
+
+Precompiled executables are available for all platforms on the [Releases](https://github.com/Copilot443/srv3-karaoke-extractor/releases) page — no Python required.
+
+| File | Platform |
+|---|---|
+| `srv3-windows.exe` | Windows |
+| `srv3-linux` | Linux |
+| `srv3-macos` | macOS |
+
+Download the binary for your OS, then:
+
+- **Rename it** to just `srv3` (or `srv3.exe` on Windows)
+- **Place it** somewhere on your PATH so you can run it from anywhere in your terminal
+
+> **Note:** The binaries have Python bundled inside them. You do **not** need Python installed to use them. All other dependencies (yt-dlp, ffmpeg, YTSubConverter, etc.) still need to be on your PATH.
+
+### Option 2 — Run from source / compile yourself
+
+If you prefer to run the script directly or build your own binary:
+
+1. Install [Python 3.8+](https://www.python.org/downloads/)
+2. Clone the repo:
    ```
    git clone https://github.com/Copilot443/srv3-karaoke-extractor
    cd srv3-karaoke-extractor
    ```
-3. Run directly with Python:
+3. Run directly:
    ```
    python srv3.py "<URL>"
    ```
-4. **Optional — run from anywhere:** add `srv3.py` to a folder on your PATH, or create a short wrapper:
-   - **Linux / macOS:** create `/usr/local/bin/srv3` containing `python /path/to/srv3.py "$@"` and `chmod +x` it
-   - **Windows:** create `srv3.bat` containing `@python C:\path\to\srv3.py %*` and place it on your PATH
+4. Or compile to a binary yourself:
+   ```
+   pip install pyinstaller
+   pyinstaller --onefile srv3.py
+   ```
+   The output will be in `dist/`.
 
 ---
 
