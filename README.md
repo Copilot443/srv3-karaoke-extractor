@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="icon.svg" width="120" height="120"/>
+</p>
+
 # srv3 – YouTube Karaoke Subtitle Extractor (`.srv3 → .ass`)
 
 `srv3` is a cross-platform command-line tool built specifically for YouTube videos that use **karaoke-style, syllable-animated subtitles** (YouTube's `.srv3` subtitle format).
