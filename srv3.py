@@ -182,8 +182,8 @@ def mux_soft_subs(video_file, ass_file, out_file):
 
 HELP_TEXT = """
 Usage:
-  srv3.py <VIDEO_URL> [MODE]
-  srv3.py <VIDEO_URL> -S/--subtitles <SUBS_URL> [PROCESS_MODE]
+  srv3.py <VIDEO_URL> [MODE] [OPTIONS]
+  srv3.py <VIDEO_URL> -S/--subtitles <SUBS_URL> [PROCESS_MODE] [OPTIONS]
 
 PROCESS_MODE (optional after -S/--subtitles):
   -s,  --soft         soft subtitles (MKV)
@@ -199,6 +199,15 @@ Modes:
   -be, --burn-edit          burn + edit
   -s,  --soft               soft subtitles (MKV)
   -se, --soft-edit          soft + edit
+
+Options:
+  -yv, --yt-dlp-video "<ARGS>"   extra yt-dlp args for the video download
+  -ys, --yt-dlp-subs  "<ARGS>"   extra yt-dlp args for the subtitle download
+
+Examples:
+  srv3.py "URL" --burn -yv "--sponsorblock-remove outro"
+  srv3.py "URL" -S "URL2" -ys "--cookies-from-browser chrome"
+  srv3.py "URL" -yv "--sponsorblock-remove outro" -ys "--cookies-from-browser firefox"
 """
 
 
@@ -215,61 +224,115 @@ ALL_PROCESS_FLAGS = BURN_FLAGS | BURN_E_FLAGS | SOFT_FLAGS | SOFT_E_FLAGS
 
 
 def parse_args():
-    args = sys.argv[1:]
+    import shlex
 
-    if not args or {"-help", "--help"} & set(args):
+    raw_args = sys.argv[1:]
+
+    if not raw_args or {"-help", "--help"} & set(raw_args):
         print(HELP_TEXT)
         sys.exit(0)
 
-    video_url = args[0]
-    mode = "normal"
-    subs_url = ""
-    process_mode = ""
+    video_url = None
+    subs_url = None
+    mode_flag = None
+    process_mode_flag = None
+    video_extra = []
+    subs_extra = []
 
-    flag = args[1] if len(args) > 1 else ""
+    # All known flags that consume no extra value
+    MODE_FLAGS = (
+        BURN_FLAGS | BURN_E_FLAGS | SOFT_FLAGS | SOFT_E_FLAGS | SUBS_O_FLAGS
+    )
+    # Flags that consume the next argument as a value
+    VALUE_FLAGS = SUBS_FLAGS | {"--yt-dlp-video", "-yv", "--yt-dlp-subs", "-ys"}
 
-    if flag in BURN_FLAGS:
+    i = 0
+    while i < len(raw_args):
+        arg = raw_args[i]
+
+        if arg in ("--yt-dlp-video", "-yv"):
+            if i + 1 >= len(raw_args):
+                die(f"{arg} requires a value")
+            video_extra = shlex.split(raw_args[i + 1])
+            i += 2
+
+        elif arg in ("--yt-dlp-subs", "-ys"):
+            if i + 1 >= len(raw_args):
+                die(f"{arg} requires a value")
+            subs_extra = shlex.split(raw_args[i + 1])
+            i += 2
+
+        elif arg in SUBS_FLAGS:
+            if i + 1 >= len(raw_args):
+                die(f"{arg} requires a subtitle URL")
+            # Mark that -S was used; grab its URL
+            mode_flag = arg
+            subs_url = raw_args[i + 1]
+            i += 2
+
+        elif arg in MODE_FLAGS:
+            # Could be a primary mode or a process mode after -S
+            if mode_flag in SUBS_FLAGS and process_mode_flag is None:
+                process_mode_flag = arg
+            else:
+                mode_flag = arg
+            i += 1
+
+        elif arg.startswith("-"):
+            die(f"Unknown flag: {arg}")
+
+        else:
+            # Positional: first non-flag = video URL
+            if video_url is None:
+                video_url = arg
+            else:
+                die(f"Unexpected argument: {arg}")
+            i += 1
+
+    if not video_url:
+        die("No video URL provided")
+
+    # ---- Resolve mode ----
+    if mode_flag in BURN_FLAGS:
         mode = "burn"
-    elif flag in BURN_E_FLAGS:
+    elif mode_flag in BURN_E_FLAGS:
         mode = "burn-edit"
-    elif flag in SOFT_FLAGS:
+    elif mode_flag in SOFT_FLAGS:
         mode = "soft"
-    elif flag in SOFT_E_FLAGS:
+    elif mode_flag in SOFT_E_FLAGS:
         mode = "soft-edit"
-    elif flag in SUBS_O_FLAGS:
+    elif mode_flag in SUBS_O_FLAGS:
         mode = "subs-only"
-    elif flag in SUBS_FLAGS:
+    elif mode_flag in SUBS_FLAGS:
         mode = "dual-subs"
-        subs_url = args[2] if len(args) > 2 else ""
-        process_mode = args[3] if len(args) > 3 else ""
-    elif flag and not flag.startswith("-"):
-        die(f"Unknown argument: {flag}")
-    elif flag and flag.startswith("-"):
-        die(f"Unknown flag: {flag}")
+    else:
+        mode = "normal"
 
     if mode == "dual-subs" and not subs_url:
         die("-S/--subtitles requires a subtitle URL")
 
-    # Apply sub-processing mode after -S/--subtitles
-    if process_mode:
-        if process_mode in BURN_FLAGS:
+    # ---- Resolve process mode after -S ----
+    if process_mode_flag:
+        if mode not in ("dual-subs",):
+            die(f"Process mode {process_mode_flag} is only valid after -S/--subtitles")
+        if process_mode_flag in BURN_FLAGS:
             mode = "dual-burn"
-        elif process_mode in BURN_E_FLAGS:
+        elif process_mode_flag in BURN_E_FLAGS:
             mode = "dual-burn-edit"
-        elif process_mode in SOFT_FLAGS:
+        elif process_mode_flag in SOFT_FLAGS:
             mode = "dual-soft"
-        elif process_mode in SOFT_E_FLAGS:
+        elif process_mode_flag in SOFT_E_FLAGS:
             mode = "dual-soft-edit"
         else:
-            die(f"Invalid processing mode: {process_mode}")
+            die(f"Invalid processing mode: {process_mode_flag}")
 
-    return video_url, mode, subs_url
+    return video_url, mode, subs_url or "", video_extra, subs_extra
 
 
 # -------- MAIN --------
 
 def main():
-    video_url, mode, subs_url = parse_args()
+    video_url, mode, subs_url, video_extra, subs_extra = parse_args()
 
     # ---- Dependencies ----
     require("yt-dlp")
@@ -312,6 +375,7 @@ def main():
             "yt-dlp", video_url,
             "-f", format_code,
             "-o", str(dest_dir / "%(title)s.%(ext)s"),
+            *video_extra,
         ])
 
     # ---- Subtitle Source ----
@@ -323,6 +387,7 @@ def main():
         "--write-subs",
         "--sub-format", "srv3",
         "-o", str(dest_dir / "%(title)s.%(ext)s"),
+        *subs_extra,
     ])
 
     # ---- Find Video File ----
