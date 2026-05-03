@@ -41,7 +41,7 @@ jobs:
         run: pip install pyinstaller
 
       - name: Build executable
-        run: pyinstaller --onefile --console srv3.py
+        run: pyinstaller --onefile srv3.py
 
       - name: Rename binary
         shell: bash
