@@ -1,6 +1,4 @@
 <p align="center">
-  <img src="icon.svg" width="150" height="150"/>
-  &nbsp;&nbsp;&nbsp;
   <img src="banner.svg" width="75%"/>
 </p>
 
