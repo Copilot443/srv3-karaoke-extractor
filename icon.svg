@@ -1,0 +1,27 @@
+<svg width="500" height="500" viewBox="0 0 680 680" role="img" xmlns="http://www.w3.org/2000/svg">
+  <title>srv3 icon</title>
+  <desc>A dark rounded square icon with a stylized play button and karaoke subtitle waveform</desc>
+
+  <rect x="90" y="90" width="500" height="500" rx="90" fill="#1a1a2e"/>
+
+  <!-- Outer ring -->
+  <circle cx="340" cy="320" r="155" fill="none" stroke="#e040fb" stroke-width="6" opacity="0.25"/>
+  <circle cx="340" cy="320" r="130" fill="#12122a"/>
+
+  <!-- Play triangle -->
+  <polygon points="315,265 315,375 405,320" fill="#e040fb" opacity="0.95"/>
+
+  <!-- Sound arcs -->
+  <path d="M220 320 Q220 220 340 220" fill="none" stroke="#e040fb" stroke-width="2.5" stroke-linecap="round" opacity="0.18"/>
+  <path d="M195 330 Q190 195 340 195" fill="none" stroke="#e040fb" stroke-width="1.5" stroke-linecap="round" opacity="0.1"/>
+  <path d="M460 320 Q460 220 340 220" fill="none" stroke="#e040fb" stroke-width="2.5" stroke-linecap="round" opacity="0.18"/>
+  <path d="M485 330 Q490 195 340 195" fill="none" stroke="#e040fb" stroke-width="1.5" stroke-linecap="round" opacity="0.1"/>
+
+  <!-- Karaoke subtitle bars -->
+  <rect x="185" y="490" width="48" height="10" rx="5" fill="#555577"/>
+  <rect x="241" y="490" width="36" height="10" rx="5" fill="#555577"/>
+  <rect x="285" y="484" width="52" height="22" rx="6" fill="#e040fb" opacity="0.9"/>
+  <rect x="345" y="490" width="40" height="10" rx="5" fill="#555577" opacity="0.6"/>
+  <rect x="393" y="490" width="56" height="10" rx="5" fill="#555577" opacity="0.6"/>
+  <rect x="457" y="490" width="38" height="10" rx="5" fill="#555577" opacity="0.4"/>
+</svg>
