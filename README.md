@@ -1,7 +1,7 @@
 <p align="center">
-  <img src="icon.svg" width="80" height="80"/>
+  <img src="icon.svg" width="150" height="150"/>
   &nbsp;&nbsp;&nbsp;
-  <img src="banner.svg" height="80"/>
+  <img src="banner.svg" width="75%"/>
 </p>
 
 # srv3 – YouTube Karaoke Subtitle Extractor (`.srv3 → .ass`)
