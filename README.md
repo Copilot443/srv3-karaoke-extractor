@@ -1,55 +1,82 @@
-# srv3-karaoke-extractor – YouTube Karaoke Subtitle Extractor (`.srv3 → .ass`)
+# srv3 – YouTube Karaoke Subtitle Extractor (`.srv3 → .ass`)
 
-`srv3` is a Linux command-line tool designed specifically for YouTube videos that use **karaoke-style, syllable-animated subtitles** (the `.srv3` subtitle format).
+`srv3` is a cross-platform command-line tool built specifically for YouTube videos that use **karaoke-style, syllable-animated subtitles** (YouTube's `.srv3` subtitle format).
 
-It downloads the video, extracts YouTube’s timing-accurate karaoke subtitle data, converts it to `.ass` format (preserving syllable animation and timing), and organizes everything cleanly into your `~/Videos` directory.
+It downloads the video, extracts syllable-accurate karaoke subtitle data, converts it to `.ass` format (preserving all animation and timing), and organizes everything cleanly into your `~/Videos` directory.
 
-Newer versions of `srv3` are fully compatible with **YouTube’s SABR streaming system** and download **exactly the format the user selects**, without forcing separate audio streams unless required by the chosen format.
+Fully compatible with **YouTube's SABR streaming system** — downloads exactly the format you select, no forced merges unless required by the format itself.
 
 ---
 
 ## 🎤 Why `.srv3` / Karaoke Subtitles?
 
-Many music videos, anime openings/endings, and lyric videos on YouTube use karaoke-style subtitles where:
+Many music videos, anime openings/endings, and lyric videos on YouTube use karaoke-style subtitles where words or syllables animate individually with frame-accurate timing. Standard formats like `.srt` and `.vtt` cannot preserve this behavior — YouTube stores it internally as `.srv3`.
 
-- Words or syllables animate individually
-- Timing exists at the syllable level
-- Standard subtitle formats (`.srt`, `.vtt`) cannot preserve this behavior
-
-YouTube stores this data internally as `.srv3`.
-
-`srv3` exists specifically to:
-
-- Extract syllable-accurate subtitle timing
-- Convert `.srv3 → .ass`
-- Preserve karaoke animations correctly
+`srv3` exists specifically to extract that data, convert it to `.ass`, and keep the karaoke animations intact.
 
 ---
 
 ## ✨ Features
 
-- Built specifically for karaoke / syllable-animated subtitles  
-- Extracts YouTube `.srv3` subtitle tracks  
-- Converts `.srv3 → .ass` with full timing precision  
-- Supports **burned** or **soft** subtitles  
-- Optional subtitle editing before processing  
-- Supports **separate subtitle source URLs**  
-- Exact format selection (no forced audio downloads)  
-- SABR-compatible format handling  
-- Clean output structure in `~/Videos/`  
-- Global `srv3` command usable from anywhere  
+- Built specifically for karaoke / syllable-animated subtitles
+- Extracts YouTube `.srv3` subtitle tracks
+- Converts `.srv3 → .ass` with full timing and animation precision
+- Supports **burned** subtitles (hardcoded into video)
+- Supports **soft** subtitles (muxed as a selectable track in MKV)
+- Optional subtitle editing before processing
+- Supports **separate subtitle source URLs** (e.g. grab subs from a different video)
+- Exact format selection — no forced audio downloads
+- SABR-compatible format handling
+- Clean output organized under `~/Videos/`
+- Cross-platform: **Windows, Linux, macOS**
 
 ---
 
-## 📦 Requirements
+## 📦 Prerequisites
 
-Installed automatically by the installer:
+All of the following must be installed and available on your system `PATH` before running `srv3`.
 
-- `yt-dlp`
-- `ffmpeg`
-- .NET 8 Runtime
-- YTSubConverter
-- `micro` (default subtitle editor)
+### Python 3.8+
+Required to run `srv3.py`.
+- **Windows:** https://www.python.org/downloads/
+- **Linux:** `sudo apt install python3` or `sudo dnf install python3`
+- **macOS:** `brew install python`
+
+### yt-dlp
+Used to download videos and subtitle tracks.
+- **All platforms:** `pip install yt-dlp` or download the binary from https://github.com/yt-dlp/yt-dlp/releases
+- **Update anytime:** `yt-dlp -U`
+
+### ffmpeg + ffprobe
+Required for burning or muxing subtitles.
+- **Windows:** Download from https://www.gyan.dev/ffmpeg/builds/ — add the `bin/` folder to your PATH
+- **Linux:** `sudo apt install ffmpeg` or `sudo dnf install ffmpeg`
+- **macOS:** `brew install ffmpeg`
+
+### .NET 8 Runtime
+Required by YTSubConverter.
+- **All platforms:** https://dotnet.microsoft.com/en-us/download/dotnet/8.0
+- Download the **Runtime** (not SDK) for your OS and architecture
+- Verify install: `dotnet --version`
+
+### YTSubConverter (`ytsubconverter`)
+Converts `.srv3` subtitle files to `.ass`.
+- Download from https://github.com/arcusmaximus/YTSubConverter/releases
+- Extract and place `ytsubconverter` (or `ytsubconverter.exe` on Windows) somewhere on your PATH
+- Linux/macOS users: `chmod +x ytsubconverter`
+
+### micro (optional — default subtitle editor)
+Used when editing subtitles with `-se` / `--soft-edit` or `-be` / `--burn-edit`.
+- **All platforms:** https://micro-editor.github.io / `brew install micro`
+- **Linux:** `sudo apt install micro` or `sudo snap install micro`
+- You can use any editor by setting the `EDITOR` environment variable:
+  ```
+  # Windows (PowerShell)
+  $env:EDITOR = "notepad"
+
+  # Linux / macOS
+  export EDITOR=nano
+  ```
 
 ---
 
@@ -57,106 +84,122 @@ Installed automatically by the installer:
 
 ```
 .
-├── install.sh
-├── srv3
-├── YTSubConverter-Linux.deb
-├── YTSubConverter-Linux.tar.xz
+├── srv3.py       ← main script (Windows / Linux / macOS)
+├── LICENSE
 └── README.md
 ```
 
 ---
 
-## 🚀 Installation (Debian / Ubuntu / Fedora)
+## 🚀 Installation
 
-`srv3` uses **one unified installer** for both Debian- and Fedora-based systems. The installer automatically installs all required dependencies for your distro.
-
-### 1️⃣ Download
-
-**GitHub Releases (recommended):**
-```
-https://github.com/Copilot443/srv3-karaoke-extractor/releases
-```
-
-Or clone directly:
-```bash
-git clone https://github.com/Copilot443/srv3-karaoke-extractor
-cd srv3-karaoke-extractor
-```
-
-### 2️⃣ Make installer executable
-```bash
-chmod +x install.sh
-```
-
-### 3️⃣ Run installer
-```bash
-sudo ./install.sh
-```
-
-The installer will:
-- Detect your distro (Debian/Ubuntu or Fedora)
-- Install all required dependencies
-- Install yt-dlp (latest upstream binary)
-- Install .NET 8 Runtime
-- Install YTSubConverter
-- Register global commands:
-  - `srv3`
-  - `ytsubconverter`
-
-Logging out and back in is recommended after installation.
+1. Install all prerequisites listed above
+2. Clone or download this repo:
+   ```
+   git clone https://github.com/Copilot443/srv3-karaoke-extractor
+   cd srv3-karaoke-extractor
+   ```
+3. Run directly with Python:
+   ```
+   python srv3.py "<URL>"
+   ```
+4. **Optional — run from anywhere:** add `srv3.py` to a folder on your PATH, or create a short wrapper:
+   - **Linux / macOS:** create `/usr/local/bin/srv3` containing `python /path/to/srv3.py "$@"` and `chmod +x` it
+   - **Windows:** create `srv3.bat` containing `@python C:\path\to\srv3.py %*` and place it on your PATH
 
 ---
 
 ## 🎬 Usage
 
-```bash
-srv3 "<VIDEO_URL>" [MODE]
+```
+python srv3.py "<VIDEO_URL>" [MODE]
+python srv3.py "<VIDEO_URL>" -S "<SUBS_URL>" [PROCESS_MODE]
 ```
 
 ### Modes
 
-| Mode | Output | Description |
-|----|------|------------|
-| *(none)* | Folder in `~/Videos/<title>_<format>/` | Downloads video + `.ass`, keeps everything |
-| `-burn` | MP4 in `~/Videos/` | Burns subtitles into video |
-| `-burn-e` | MP4 in `~/Videos/` | Edit `.ass` before burning |
-| `-soft` | MKV in `~/Videos/` | Mux `.ass` as soft subtitle track |
-| `-soft-e` | MKV in `~/Videos/` | Edit `.ass` before muxing |
-| `-subs-o` | `.ass` only | Download subtitles only |
-| `-subs <SUB_URL>` | Video + subs | Use subtitles from a different URL |
+| Short | Long | Output | Description |
+|-------|------|--------|-------------|
+| *(none)* | | Folder `~/Videos/<title>_F<fmt>/` | Download video + `.ass`, keep both |
+| `-b` | `--burn` | MP4 in `~/Videos/` | Burn subtitles into video |
+| `-be` | `--burn-edit` | MP4 in `~/Videos/` | Edit `.ass` first, then burn |
+| `-s` | `--soft` | MKV in `~/Videos/` | Mux `.ass` as soft subtitle track |
+| `-se` | `--soft-edit` | MKV in `~/Videos/` | Edit `.ass` first, then mux |
+| `-So` | `--subtitles-only` | `.ass` file only | Download and convert subtitles only |
+| `-S <URL>` | `--subtitles <URL>` | Depends on PROCESS_MODE | Use subtitles from a different URL |
+
+### Using a separate subtitle URL (`-S`)
+
+When subtitles exist on a different video than the one you're downloading, pass both URLs:
+
+```
+python srv3.py "<VIDEO_URL>" -S "<SUBS_URL>" [PROCESS_MODE]
+```
+
+`PROCESS_MODE` is optional and accepts the same flags as above (`-b`, `-be`, `-s`, `-se`).
+
+---
+
+## 💡 Examples
+
+Download video and subtitles, keep both in a folder:
+```
+python srv3.py "https://www.youtube.com/watch?v=XXXX"
+```
+
+Burn subtitles into an MP4:
+```
+python srv3.py "https://www.youtube.com/watch?v=XXXX" --burn
+```
+
+Mux as a soft subtitle track (MKV):
+```
+python srv3.py "https://www.youtube.com/watch?v=XXXX" --soft
+```
+
+Edit subtitles before burning:
+```
+python srv3.py "https://www.youtube.com/watch?v=XXXX" --burn-edit
+```
+
+Download subtitles only:
+```
+python srv3.py "https://www.youtube.com/watch?v=XXXX" --subtitles-only
+```
+
+Download video from one URL, subtitles from another, and burn:
+```
+python srv3.py "https://www.youtube.com/watch?v=XXXX" --subtitles "https://www.youtube.com/watch?v=YYYY" --burn
+```
 
 ---
 
 ## 🎚 Format Selection & SABR Notes
 
-When running, `srv3`:
+When you run `srv3`, it will:
 
-1. Lists all available YouTube formats
-2. Prompts you to select a format code
-3. Downloads **exactly** the format you selected
+1. Fetch and display all available formats for the video
+2. Prompt you to enter a format code
+3. Download exactly that format
 
-If the selected format is video-only, yt-dlp will automatically download and merge the required audio stream. No forced audio downloads are performed.
+If the selected format is video-only (no audio), yt-dlp will automatically fetch and merge the best available audio. No extra configuration needed.
 
 ---
 
 ## 🧹 Uninstalling
 
-```bash
-sudo rm /usr/local/bin/srv3
-sudo rm /usr/local/bin/ytsubconverter
-```
+Simply delete `srv3.py` and remove any PATH entries or wrapper scripts you created.
 
 ---
 
 ## 🙏 Credits
 
-- **YTSubConverter** – https://github.com/arcusmaximus/YTSubConverter  
-- **yt-dlp** – https://github.com/yt-dlp/yt-dlp  
-- **ffmpeg** – https://git.ffmpeg.org/ffmpeg.git  
+- **YTSubConverter** — https://github.com/arcusmaximus/YTSubConverter
+- **yt-dlp** — https://github.com/yt-dlp/yt-dlp
+- **ffmpeg** — https://ffmpeg.org
 
 ---
 
 ## 📄 License
 
 MIT License
-
