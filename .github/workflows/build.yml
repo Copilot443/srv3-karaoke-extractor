@@ -15,12 +15,15 @@ jobs:
         include:
           - os: windows-latest
             output: srv3.exe
+            renamed: srv3-windows.exe
             artifact: srv3-windows
           - os: ubuntu-latest
             output: srv3
+            renamed: srv3-linux
             artifact: srv3-linux
           - os: macos-latest
             output: srv3
+            renamed: srv3-macos
             artifact: srv3-macos
 
     runs-on: ${{ matrix.os }}
@@ -40,14 +43,18 @@ jobs:
       - name: Build executable
         run: pyinstaller --onefile --console srv3.py
 
+      - name: Rename binary
+        shell: bash
+        run: mv dist/${{ matrix.output }} dist/${{ matrix.renamed }}
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact }}
-          path: dist/${{ matrix.output }}
+          path: dist/${{ matrix.renamed }}
 
       - name: Upload to release
         if: github.event_name == 'release'
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/${{ matrix.output }}
+          files: dist/${{ matrix.renamed }}
