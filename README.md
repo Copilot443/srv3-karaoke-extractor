@@ -1,4 +1,6 @@
 <p align="center">
+  <img src="icon.svg" width="150" height="150"/>
+  &nbsp;&nbsp;&nbsp;
   <img src="banner.svg" width="75%"/>
 </p>
 
@@ -29,6 +31,8 @@ Many music videos, anime openings/endings, and lyric videos on YouTube use karao
 - Supports **soft** subtitles (muxed as a selectable track in MKV)
 - Optional subtitle editing before processing
 - Supports **separate subtitle source URLs** (e.g. grab subs from a different video)
+- Pass **custom yt-dlp arguments** independently to the video and subtitle downloads
+- Fully **order-independent** argument parsing — flags can go in any order
 - Exact format selection — no forced audio downloads
 - SABR-compatible format handling
 - Clean output organized under `~/Videos/`
@@ -38,22 +42,20 @@ Many music videos, anime openings/endings, and lyric videos on YouTube use karao
 
 ## 📦 Prerequisites
 
-All of the following must be installed and available on your system `PATH` before running `srv3`.
+All of the following must be installed and available on your system `PATH`.
 
-### Python 3.8+
-Required to run `srv3.py`.
+### Python 3.8+ *(only needed if running from source)*
 - **Windows:** https://www.python.org/downloads/
 - **Linux:** `sudo apt install python3` or `sudo dnf install python3`
 - **macOS:** `brew install python`
 
 ### yt-dlp
-Used to download videos and subtitle tracks.
-- **All platforms:** `pip install yt-dlp` or download the binary from https://github.com/yt-dlp/yt-dlp/releases
+- **All platforms:** `pip install yt-dlp` or https://github.com/yt-dlp/yt-dlp/releases
 - **Update anytime:** `yt-dlp -U`
 
 ### ffmpeg + ffprobe
 Required for burning or muxing subtitles.
-- **Windows:** Download from https://www.gyan.dev/ffmpeg/builds/ — add the `bin/` folder to your PATH
+- **Windows:** https://www.gyan.dev/ffmpeg/builds/ — add the `bin/` folder to your PATH
 - **Linux:** `sudo apt install ffmpeg` or `sudo dnf install ffmpeg`
 - **macOS:** `brew install ffmpeg`
 
@@ -61,19 +63,20 @@ Required for burning or muxing subtitles.
 Required by YTSubConverter.
 - **All platforms:** https://dotnet.microsoft.com/en-us/download/dotnet/8.0
 - Download the **Runtime** (not SDK) for your OS and architecture
-- Verify install: `dotnet --version`
+- Verify: `dotnet --version`
 
 ### YTSubConverter (`ytsubconverter`)
 Converts `.srv3` subtitle files to `.ass`.
 - Download from https://github.com/arcusmaximus/YTSubConverter/releases
-- Extract and place `ytsubconverter` (or `ytsubconverter.exe` on Windows) somewhere on your PATH
-- Linux/macOS users: `chmod +x ytsubconverter`
+- Place `ytsubconverter` (or `ytsubconverter.exe`) somewhere on your PATH
+- Linux/macOS: `chmod +x ytsubconverter`
 
-### micro (optional — default subtitle editor)
-Used when editing subtitles with `-se` / `--soft-edit` or `-be` / `--burn-edit`.
-- **All platforms:** https://micro-editor.github.io / `brew install micro`
-- **Linux:** `sudo apt install micro` or `sudo snap install micro`
-- You can use any editor by setting the `EDITOR` environment variable:
+### micro *(optional — default subtitle editor)*
+Used when editing subtitles with `-se` or `-be` modes.
+- **All platforms:** https://micro-editor.github.io
+- **Linux:** `sudo apt install micro`
+- **macOS:** `brew install micro`
+- Use any editor by setting the `EDITOR` environment variable:
   ```
   # Windows (PowerShell)
   $env:EDITOR = "notepad"
@@ -92,8 +95,8 @@ Used when editing subtitles with `-se` / `--soft-edit` or `-be` / `--burn-edit`.
 │   └── workflows/
 │       └── build.yml     ← automated cross-platform build pipeline
 ├── srv3.py               ← main script (Windows / Linux / macOS)
-├── banner.svg
-├── icon.svg
+├── icon.svg              ← project icon
+├── banner.svg            ← project banner
 ├── LICENSE
 └── README.md
 ```
@@ -102,9 +105,9 @@ Used when editing subtitles with `-se` / `--soft-edit` or `-be` / `--burn-edit`.
 
 ## 🚀 Installation
 
-### Option 1 — Precompiled Binaries (recommended)
+### Option 1 — Precompiled Binaries *(recommended)*
 
-Precompiled executables are available for all platforms on the [Releases](https://github.com/Copilot443/srv3-karaoke-extractor/releases) page — no Python required.
+Precompiled executables are available for all platforms on the [Releases](https://github.com/Copilot443/srv3-karaoke-extractor/releases) page — **no Python required**.
 
 | File | Platform |
 |---|---|
@@ -112,16 +115,13 @@ Precompiled executables are available for all platforms on the [Releases](https:
 | `srv3-linux` | Linux |
 | `srv3-macos` | macOS |
 
-Download the binary for your OS, then:
+After downloading:
+- Rename the file to `srv3` (or `srv3.exe` on Windows)
+- Place it somewhere on your PATH so you can run it from anywhere
 
-- **Rename it** to just `srv3` (or `srv3.exe` on Windows)
-- **Place it** somewhere on your PATH so you can run it from anywhere in your terminal
-
-> **Note:** The binaries have Python bundled inside them. You do **not** need Python installed to use them. All other dependencies (yt-dlp, ffmpeg, YTSubConverter, etc.) still need to be on your PATH.
+> **Note:** Python is bundled inside the binary. You do **not** need Python installed. All other dependencies (yt-dlp, ffmpeg, YTSubConverter, etc.) still need to be on your PATH.
 
 ### Option 2 — Run from source / compile yourself
-
-If you prefer to run the script directly or build your own binary:
 
 1. Install [Python 3.8+](https://www.python.org/downloads/)
 2. Clone the repo:
@@ -133,21 +133,23 @@ If you prefer to run the script directly or build your own binary:
    ```
    python srv3.py "<URL>"
    ```
-4. Or compile to a binary yourself:
+4. Or compile to a binary:
    ```
    pip install pyinstaller
    pyinstaller --onefile srv3.py
    ```
-   The output will be in `dist/`.
+   Output will be in `dist/`.
 
 ---
 
 ## 🎬 Usage
 
 ```
-python srv3.py "<VIDEO_URL>" [MODE]
-python srv3.py "<VIDEO_URL>" -S "<SUBS_URL>" [PROCESS_MODE]
+srv3 [OPTIONS] <VIDEO_URL> [MODE]
+srv3 [OPTIONS] <VIDEO_URL> -S <SUBS_URL> [MODE]
 ```
+
+Flags and URLs can be passed in **any order**.
 
 ### Modes
 
@@ -159,50 +161,62 @@ python srv3.py "<VIDEO_URL>" -S "<SUBS_URL>" [PROCESS_MODE]
 | `-s` | `--soft` | MKV in `~/Videos/` | Mux `.ass` as soft subtitle track |
 | `-se` | `--soft-edit` | MKV in `~/Videos/` | Edit `.ass` first, then mux |
 | `-So` | `--subtitles-only` | `.ass` file only | Download and convert subtitles only |
-| `-S <URL>` | `--subtitles <URL>` | Depends on PROCESS_MODE | Use subtitles from a different URL |
+| `-S <URL>` | `--subtitles <URL>` | Depends on mode | Use subtitles from a different URL |
 
-### Using a separate subtitle URL (`-S`)
+### Options
 
-When subtitles exist on a different video than the one you're downloading, pass both URLs:
-
-```
-python srv3.py "<VIDEO_URL>" -S "<SUBS_URL>" [PROCESS_MODE]
-```
-
-`PROCESS_MODE` is optional and accepts the same flags as above (`-b`, `-be`, `-s`, `-se`).
+| Short | Long | Description |
+|-------|------|-------------|
+| `-yv` | `--yt-dlp-video "<ARGS>"` | Extra yt-dlp args for the video download |
+| `-ys` | `--yt-dlp-subs "<ARGS>"` | Extra yt-dlp args for the subtitle download |
 
 ---
 
 ## 💡 Examples
 
-Download video and subtitles, keep both in a folder:
+Download video and subtitles, keep both:
 ```
-python srv3.py "https://www.youtube.com/watch?v=XXXX"
+srv3 "https://www.youtube.com/watch?v=XXXX"
 ```
 
 Burn subtitles into an MP4:
 ```
-python srv3.py "https://www.youtube.com/watch?v=XXXX" --burn
+srv3 "https://www.youtube.com/watch?v=XXXX" --burn
 ```
 
 Mux as a soft subtitle track (MKV):
 ```
-python srv3.py "https://www.youtube.com/watch?v=XXXX" --soft
+srv3 "https://www.youtube.com/watch?v=XXXX" --soft
 ```
 
 Edit subtitles before burning:
 ```
-python srv3.py "https://www.youtube.com/watch?v=XXXX" --burn-edit
+srv3 "https://www.youtube.com/watch?v=XXXX" --burn-edit
 ```
 
 Download subtitles only:
 ```
-python srv3.py "https://www.youtube.com/watch?v=XXXX" --subtitles-only
+srv3 "https://www.youtube.com/watch?v=XXXX" --subtitles-only
 ```
 
-Download video from one URL, subtitles from another, and burn:
+Video from one URL, subtitles from another, burn:
 ```
-python srv3.py "https://www.youtube.com/watch?v=XXXX" --subtitles "https://www.youtube.com/watch?v=YYYY" --burn
+srv3 "https://www.youtube.com/watch?v=XXXX" -S "https://www.youtube.com/watch?v=YYYY" --burn
+```
+
+Remove sponsor segments from video only:
+```
+srv3 "https://www.youtube.com/watch?v=XXXX" --burn -yv "--sponsorblock-remove outro"
+```
+
+Use browser cookies for subtitle download only:
+```
+srv3 "https://www.youtube.com/watch?v=XXXX" -S "https://www.youtube.com/watch?v=YYYY" -ys "--cookies-from-browser chrome"
+```
+
+Full example — flags in any order:
+```
+srv3 -yv "--sponsorblock-remove outro" --burn-edit -S "https://www.youtube.com/watch?v=YYYY" -ys "--limit-rate 500K" "https://www.youtube.com/watch?v=XXXX"
 ```
 
 ---
@@ -215,13 +229,13 @@ When you run `srv3`, it will:
 2. Prompt you to enter a format code
 3. Download exactly that format
 
-If the selected format is video-only (no audio), yt-dlp will automatically fetch and merge the best available audio. No extra configuration needed.
+If the selected format is video-only (no audio), yt-dlp will automatically fetch and merge the best available audio.
 
 ---
 
 ## 🧹 Uninstalling
 
-Simply delete `srv3.py` and remove any PATH entries or wrapper scripts you created.
+Simply delete the `srv3` binary and remove any PATH entries or wrapper scripts you created.
 
 ---
 
