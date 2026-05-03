@@ -1,0 +1,27 @@
+<svg width="100%" viewBox="0 0 680 200" role="img" xmlns="http://www.w3.org/2000/svg">
+  <title>srv3 banner</title>
+  <desc>Stylized banner for srv3 — YouTube karaoke subtitle extractor</desc>
+
+  <rect x="0" y="0" width="680" height="200" rx="16" fill="#1a1a2e"/>
+  <rect x="0" y="0" width="680" height="200" rx="16" fill="none" stroke="#e040fb" stroke-width="1" opacity="0.2"/>
+
+  <line x1="40" y1="170" x2="640" y2="170" stroke="#e040fb" stroke-width="0.5" opacity="0.15"/>
+
+  <rect x="40" y="155" width="55" height="10" rx="5" fill="#555577" opacity="0.7"/>
+  <rect x="105" y="155" width="38" height="10" rx="5" fill="#555577" opacity="0.7"/>
+  <rect x="153" y="149" width="60" height="22" rx="6" fill="#e040fb" opacity="0.9"/>
+  <rect x="223" y="155" width="44" height="10" rx="5" fill="#555577" opacity="0.5"/>
+  <rect x="277" y="155" width="52" height="10" rx="5" fill="#555577" opacity="0.4"/>
+  <rect x="339" y="155" width="36" height="10" rx="5" fill="#555577" opacity="0.3"/>
+  <rect x="385" y="155" width="60" height="10" rx="5" fill="#555577" opacity="0.2"/>
+  <rect x="455" y="155" width="42" height="10" rx="5" fill="#555577" opacity="0.15"/>
+  <rect x="507" y="155" width="50" height="10" rx="5" fill="#555577" opacity="0.1"/>
+
+  <circle cx="88" cy="82" r="48" fill="#12122a" stroke="#e040fb" stroke-width="1.5" opacity="1"/>
+  <polygon points="78,62 78,102 112,82" fill="#e040fb"/>
+
+  <text x="152" y="72" font-family="system-ui, sans-serif" font-size="48" font-weight="700" fill="#ffffff" letter-spacing="-1">srv3</text>
+  <text x="154" y="100" font-family="system-ui, sans-serif" font-size="15" font-weight="400" fill="#e040fb" opacity="0.85" letter-spacing="0.5">YouTube karaoke subtitle extractor</text>
+  <text x="154" y="125" font-family="system-ui, monospace" font-size="12" fill="#888aaa" opacity="0.7">.srv3  →  .ass  |  burn  |  soft  |  cross-platform</text>
+
+</svg>
