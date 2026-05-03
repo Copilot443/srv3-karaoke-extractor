@@ -234,17 +234,13 @@ def parse_args():
 
     video_url = None
     subs_url = None
-    mode_flag = None
-    process_mode_flag = None
+    use_subs = False        # whether -S/--subtitles was given
+    subs_only = False       # whether -So/--subtitles-only was given
+    process_flag = None     # burn/soft/burn-edit/soft-edit flag
     video_extra = []
     subs_extra = []
 
-    # All known flags that consume no extra value
-    MODE_FLAGS = (
-        BURN_FLAGS | BURN_E_FLAGS | SOFT_FLAGS | SOFT_E_FLAGS | SUBS_O_FLAGS
-    )
-    # Flags that consume the next argument as a value
-    VALUE_FLAGS = SUBS_FLAGS | {"--yt-dlp-video", "-yv", "--yt-dlp-subs", "-ys"}
+    MODE_FLAGS = BURN_FLAGS | BURN_E_FLAGS | SOFT_FLAGS | SOFT_E_FLAGS
 
     i = 0
     while i < len(raw_args):
@@ -265,24 +261,22 @@ def parse_args():
         elif arg in SUBS_FLAGS:
             if i + 1 >= len(raw_args):
                 die(f"{arg} requires a subtitle URL")
-            # Mark that -S was used; grab its URL
-            mode_flag = arg
+            use_subs = True
             subs_url = raw_args[i + 1]
             i += 2
 
+        elif arg in SUBS_O_FLAGS:
+            subs_only = True
+            i += 1
+
         elif arg in MODE_FLAGS:
-            # Could be a primary mode or a process mode after -S
-            if mode_flag in SUBS_FLAGS and process_mode_flag is None:
-                process_mode_flag = arg
-            else:
-                mode_flag = arg
+            process_flag = arg
             i += 1
 
         elif arg.startswith("-"):
             die(f"Unknown flag: {arg}")
 
         else:
-            # Positional: first non-flag = video URL
             if video_url is None:
                 video_url = arg
             else:
@@ -292,39 +286,34 @@ def parse_args():
     if not video_url:
         die("No video URL provided")
 
-    # ---- Resolve mode ----
-    if mode_flag in BURN_FLAGS:
-        mode = "burn"
-    elif mode_flag in BURN_E_FLAGS:
-        mode = "burn-edit"
-    elif mode_flag in SOFT_FLAGS:
-        mode = "soft"
-    elif mode_flag in SOFT_E_FLAGS:
-        mode = "soft-edit"
-    elif mode_flag in SUBS_O_FLAGS:
-        mode = "subs-only"
-    elif mode_flag in SUBS_FLAGS:
-        mode = "dual-subs"
-    else:
-        mode = "normal"
-
-    if mode == "dual-subs" and not subs_url:
+    if use_subs and not subs_url:
         die("-S/--subtitles requires a subtitle URL")
 
-    # ---- Resolve process mode after -S ----
-    if process_mode_flag:
-        if mode not in ("dual-subs",):
-            die(f"Process mode {process_mode_flag} is only valid after -S/--subtitles")
-        if process_mode_flag in BURN_FLAGS:
+    # ---- Resolve mode ----
+    if subs_only:
+        mode = "subs-only"
+    elif use_subs:
+        if process_flag in BURN_FLAGS:
             mode = "dual-burn"
-        elif process_mode_flag in BURN_E_FLAGS:
+        elif process_flag in BURN_E_FLAGS:
             mode = "dual-burn-edit"
-        elif process_mode_flag in SOFT_FLAGS:
+        elif process_flag in SOFT_FLAGS:
             mode = "dual-soft"
-        elif process_mode_flag in SOFT_E_FLAGS:
+        elif process_flag in SOFT_E_FLAGS:
             mode = "dual-soft-edit"
         else:
-            die(f"Invalid processing mode: {process_mode_flag}")
+            mode = "dual-subs"
+    else:
+        if process_flag in BURN_FLAGS:
+            mode = "burn"
+        elif process_flag in BURN_E_FLAGS:
+            mode = "burn-edit"
+        elif process_flag in SOFT_FLAGS:
+            mode = "soft"
+        elif process_flag in SOFT_E_FLAGS:
+            mode = "soft-edit"
+        else:
+            mode = "normal"
 
     return video_url, mode, subs_url or "", video_extra, subs_extra
 
